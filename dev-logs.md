@@ -22,35 +22,15 @@
 ------------------------------------------------------------------------------
 
 # 日志
+__写日志时请按照逆序时间排序__
 
-## 4月1日前
-* 环境配置成功, 重现了 recc, 一切正常
-
-## 4月1日至4月2日
-* FPGA 的 Helloworld 在板子上无法运行, 烧入总是出现 jtag 等的问题.  完全按照 max10 的开发手册也不行.
-    详情参见 [memo](https://github.com/AndroidNewsHomework/lightweight-os-dev-docs/blob/master/memo.md#%E6%9D%BF%E5%AD%90%E5%9E%8B%E5%8F%B7%E9%97%AE%E9%A2%98).
-    解决是, 发现开发手册中的问题: FPGA 型号不对. 修正后 FPGA 成功运行 Helloworld
-
-## 4月3日
-* 片内 RAM 接口摸清楚了.
-
-* 尝试使用片内 flash, 失败.
-
-## 4月4日至4月5日
-* 尝试使用片内 flash, 失败.
-
-* 搁置片内 flash 的问题, 等待其他组员一起解决.
-
-## 4月6日
-* 更仔细的阅读 recc 源代码, 开始研究 recc 编译器
-
-## 4月7日
-* 发现 kernel image 过大 (光是指令就有 1 MB), 难以写入 FPGA 中 (BRAM 378Kb, UserFlash 32KB).
-
-*TODO*: 研究裁剪 OS / 优化 kernel image 的大小的方法
+## 4月9日
+* 交流了项目中主要存在的问题, 并完成大体分工
+    1. 在有限的硬件资源上实现一个完整的 CPU (可能还要支持透明TLB)
+    2. 将操作系统 (kernel image 6~7 MB) 裁剪, 装入 32KB 的用户flash.
+    3. 分工为 zty: kernel, wys: cpu, dzy: compiler
 
 ## 4月8日
-
 * 交流会: 我们需要实现的不仅仅是他模拟器的 CPU, 更要考虑将课程中知识点应用.
     1. 我们如何完成对页式内存访问的管理?
         模拟器中是没有 TLB 的, 陈老师希望我们能够把 TLB 直接做到硬件里, 这样软件更简单.
@@ -58,3 +38,30 @@
     2. 最好目标是, 我们写的 CPU (以及编译器) 能够使得 ucoreplus 被编译之后放到 FPGA 中.
 
 * 阅读编译器, 理解了最初的版本 (2d0e734)
+
+## 4月7日
+* 发现 kernel image 过大 (光是指令就有 1 MB), 难以写入 FPGA 中 (BRAM 378Kb, UserFlash 32KB).
+
+*TODO*: 研究裁剪 OS / 优化 kernel image 的大小的方法
+
+## 4月6日
+* 更仔细的阅读 recc 源代码, 开始研究 recc 编译器
+
+## 4月4日至4月5日
+* 尝试使用片内 flash, 失败.
+
+* 搁置片内 flash 的问题, 等待其他组员一起解决.
+
+## 4月3日
+* 片内 RAM 接口摸清楚了.
+
+* 尝试使用片内 flash, 失败.
+
+## 4月1日至4月2日
+* FPGA 的 Helloworld 在板子上无法运行, 烧入总是出现 jtag 等的问题.  完全按照 max10 的开发手册也不行.
+    详情参见 [memo](https://github.com/AndroidNewsHomework/lightweight-os-dev-docs/blob/master/memo.md#%E6%9D%BF%E5%AD%90%E5%9E%8B%E5%8F%B7%E9%97%AE%E9%A2%98).
+    解决是, 发现开发手册中的问题: FPGA 型号不对. 修正后 FPGA 成功运行 Helloworld
+
+## 4月1日前
+* 环境配置成功, 重现了 recc, 一切正常
+
