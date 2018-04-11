@@ -132,7 +132,6 @@ Assignments
 中新建一个 testbench, 其中包括我们的 testbench 文件.
 
 之后编译项目 (compile `Ctrl+L` 或者 start analysis and synthesis `Ctrl+K`.
-编译项目的时候, top 实体还是 `litecpu`, 不要改成 testbench 文件.
 
 之后
 Tools 
@@ -160,3 +159,5 @@ Tools
 
 2. Tools > Options > EDA Tools Options 中检查 modelsim-altera 的路径, 应当形如 `/home/hob/intelFPGA_lite/17.1/modelsim_ase/linuxaloem/`
 
+如果出现了 unknown expanded name 之类的问题, 这是因为 modelsim 只负责仿真, 你所有的其他实体都需要已经被编译.
+这种时候可以尝试修改 top 实体, 如改成 `CPU_CORE`.
