@@ -2,6 +2,29 @@ Whenever I try to compile recc in Linux runlevel 5, the GUI gets stuck (old Lapt
 Thus I work in runlevel 3, without GUI and Chinese IM.
 That's why this article is in English.
 
+# Notes on the build system
+## Basic workflow
+See the [one page explaination](http://recc.robertelder.org/details/).
+
+Basically, it's like `*.[ch] -> *.i -> *.l2 -> l1 -> machine`,
+but the machine instructions is not like a kernel image but rather a big C array.
+Anyway they are equivalent.
+
+## On the register-dependency mechanism
+This seems to be the Makefile of recc, but it is written in C.
+For example, the kernel is not made by executing `make`.
+Rather, `build_kernel.c` containing all the build information 
+(dependencies, file types etc) will be compiled into executable
+`build_kernel`.
+This `build_kernel` is our make program, kernel image is built
+by executing it.
+
+Specially, the dependencies of a .l2 file should either be a .i file (asm generation)
+or multiple .l2 files (linking them together).
+You may get a copy of the structured dependency map by making a request to 
+[Hoblovski](https://github.com/Hoblovski).
+
+
 # How the kernel image is build
 ```sh
 recc/:$ make kernel/build_kernel
@@ -76,9 +99,17 @@ compiler objects include the following files in recc-implementation
 * binary\_exponential\_buffer
 
 ### register\_kernel\_objects
+Includes entity definition and dependency of the kernel.
+
 
 ### new\_register\_data\_structures\_objects
-_TODO: wtf so messy_
+Do a bunch of `make_map`, `make_list`, `make_merge_sort` etc,
+generating data structures and algorithms.
+
+Do a big bunch of `register_generated_type`.
+Seems to copy `types/**/*.h` into `generated/*.h` just adding proper include's.
+
+Files in `recc/` and also `kernel/filesystem.c` include some of these generated headers.
 
 ### construct\_generated\_c\_entities
 ```
@@ -89,19 +120,36 @@ _TODO: wtf so messy_
 This generates the C codes in `generated/`.
 
 ### construct_entity(state, "test/kernel.l0.js")
-
+This not only builds `test/kernel.l0.js` but also all of its dependencies,
+including the kernel image `kernel/kernel.l1`.
 
 ### The construct\_entity(state, ent\_name) function
-_TODO_
+Basically this function builds the dependencies of `ent`,
+and then build if necessary `ent` using `make_target(state, ent)`.
 
+`make_target` simply does 2 things: 
 
+* `make_header_target(state, target)`
 
+* `make_c_compiler_target(state, target)`
+Depending on the type of `target`:
 
+* .l1 file: only 1 case: linking (.l2's->.l1).
+This is done by `do_link`, with (possibly) page aligned and (possibly) metadata only.
 
+* .l2 file: only 2 cases: asm translating (.i->.l2),  or linking (.l2's->.l2).
+The former delegate to `do_code_generation`, the latter to `do_link`.
 
+* .l0 file: simply translating .l1 file into .l0 file. No need to look at.
+Delegate to `l0_generator_state_create`.
 
+* filesystem impl file: in fact wtf is this a single entity type?
+_TODO WTF_
 
+* .i file: dependencies should be a single .c file.
+Delegate to `do_preprocess`.
 
+* .c file: `assert(0)`, not supported.
 
 
 
