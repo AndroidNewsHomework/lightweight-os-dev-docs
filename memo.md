@@ -83,7 +83,7 @@ hob:bin/ $ ./jtagconfig
 
 # RAM 的使用
 
-### RAM 初始化
+## RAM 初始化
 我们的板子不支持烧写 RAM 的初始化 (就是不能给一个 mif 文件作为 RAM 的初始值),
 [参考](https://www.alteraforum.com/forum/showthread.php?t=56869).
 
@@ -92,9 +92,10 @@ hob:bin/ $ ./jtagconfig
 ------------------------------------------------------------------------------
 
 # Testbench 的使用
+commit 3aadb63 给出了一个简单的包含 ram 的 testbench 例子.
 
-### 基本使用
-首先建立 testbench 文件并加入项目, 如
+## 基本使用
+首先建立 testbench 文件并加入项目,
 ```vhdl
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
@@ -106,30 +107,49 @@ end litecpu_tb;
 
 
 architecture behave of litecpu_tb is
-    signal CLK: std_logic := '0';
-    signal disp: std_logic := '0';
+	signal CLK: std_logic := '0';
+	signal disp: std_logic := '0';
 begin
-    CLK <= not CLK after 10ns;
+	CLK <= not CLK after 10ns;
 
-    utop: 
-    entity work.litecpu
-    port map (
-        clk=> CLK,
-		  disp=> disp
-    );
+	utop: 
+	entity work.litecpu
+	port map (
+		clk=> CLK,
+		disp=> disp
+	);
 
 end behave;
 ```
+注意要求 vhdl 项目代码规范使用 tab 缩进而非空格
 
 之后在 quartus 中,
-Assignments > Settings > EDA tool settings : Simulation > NativeLink settings > compile test bench
-中新建一个 testbench, 使用我们的那个测试文件.
+Assignments 
+> Settings 
+> EDA tool settings : Simulation 
+> NativeLink settings 
+> compile test bench
+中新建一个 testbench, 其中包括我们的 testbench 文件.
 
-之后编译项目, 然后 Tools > Run Simulation tools > RTL Simulation (行为仿真) 会打开 modelsim.
+之后编译项目 (compile `Ctrl+L` 或者 start analysis and synthesis `Ctrl+K`.
+编译项目的时候, top 实体还是 `litecpu`, 不要改成 testbench 文件.
 
-modelsim 中增加观察信号之后, 需要
-* 修改运行时间
-* run
+之后
+Tools 
+> Run Simulation tools 
+> RTL Simulation (行为仿真) 会打开 modelsim.
+
+## modelsim 的使用
+一般 RTL Simulation 打开的 modelsim 之后, 我们还需要调整信号等等.
+
+下图是 modelsim 的界面
+
+![Modelsim interface](https://github.com/AndroidNewsHomework/lightweight-os-dev-docs/blob/master/modelsim.png)
+
+其中 
+* A 按钮是重新开始模拟, 时间回到 0 ps. 一般修改要观察的信号表之后需要点这个.
+* B 框中填写你要运行的时间
+* C 按钮使得时间前进, 前进长度为 B 按钮中时间长度
 
 ### modelsim 相关问题
 
