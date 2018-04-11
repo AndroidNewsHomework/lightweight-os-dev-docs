@@ -81,11 +81,62 @@ hob:bin/ $ ./jtagconfig
 
 ------------------------------------------------------------------------------
 
-## RAM 的使用
+# RAM 的使用
 
 ### RAM 初始化
 我们的板子不支持烧写 RAM 的初始化 (就是不能给一个 mif 文件作为 RAM 的初始值),
 [参考](https://www.alteraforum.com/forum/showthread.php?t=56869).
 
 
+
+------------------------------------------------------------------------------
+
+# Testbench 的使用
+
+### 基本使用
+首先建立 testbench 文件并加入项目, 如
+```vhdl
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+
+
+entity litecpu_tb is
+end litecpu_tb;
+
+
+architecture behave of litecpu_tb is
+    signal CLK: std_logic := '0';
+    signal disp: std_logic := '0';
+begin
+    CLK <= not CLK after 10ns;
+
+    utop: 
+    entity work.litecpu
+    port map (
+        clk=> CLK,
+		  disp=> disp
+    );
+
+end behave;
+```
+
+之后在 quartus 中,
+Assignments > Settings > EDA tool settings : Simulation > NativeLink settings > compile test bench
+中新建一个 testbench, 使用我们的那个测试文件.
+
+之后编译项目, 然后 Tools > Run Simulation tools > RTL Simulation (行为仿真) 会打开 modelsim.
+
+modelsim 中增加观察信号之后, 需要
+* 修改运行时间
+* run
+
+### modelsim 相关问题
+
+一般我们使用的模拟器是 altera-modelsim, 注意是 starter version 才是免费的.
+如果出现了 license 错误, 检查是否你的模拟器路径是正确的.
+
+1. Assignments > Settings > EDA tool settings : Simulation > Tool name 需要是 modelsim-altera
+
+2. Tools > Options > EDA Tools Options 中检查 modelsim-altera 的路径, 应当形如 `/home/hob/intelFPGA_lite/17.1/modelsim_ase/linuxaloem/`
 
