@@ -87,6 +87,42 @@ hob:bin/ $ ./jtagconfig
 我们的板子不支持烧写 RAM 的初始化 (就是不能给一个 mif 文件作为 RAM 的初始值),
 [参考](https://www.alteraforum.com/forum/showthread.php?t=56869).
 
+------------------------------------------------------------------------------
+
+# 片内Flash 的使用
+尽管经过一系列的努力还是没有调通flash，不过把已经做过的事和问题先列在这里。
+
+## 添加Flash的QSys system
+在quartus右边，IP catalog里选择install IP -> Library -> On Chip Memory -> Altera On-Chip Flash，双击打开QSys编辑页面，设置路径及文件名，按照需要配置一下时钟周期，突发模式等。
+
+如果需要初始化Flash，勾选Flash Initialization中的Initialize flash content，然后根据需要选择从哪里读入flash的初始化内容。
+
+选择右下角Generate HDL...，保存成VHDL或者Verilog文件。
+
+## 把sof文件转换为pof文件
+在File -> Convert Programming Files里可以进行。下面参考文献里的第一个链接说的很详细。
+
+这里我没懂的是这个地方也有个初始化UFM的配置，不知道和之前那个Initialize flash content有什么区别
+
+## 编写代码
+没啥说的，例化flash
+
+## 现在的情况
+目前看来，flash似乎完全不能正常使用，至少不管是我手动写入数据还是初始化，都没有办法正常的读出来，读出来的似乎总是0。而且在最后的测试中我发现readValid似乎总是在高电平上，即使我手动的把dataread置为'0'。
+
+参考文献的第二个链接是这个片内flash的手册，我按照他的例子给出了几个电平输入，全部gg。
+
+而且有一些地方的设置，在device的configuration里，有些设置我们没有，很奇怪，不知道会不会和板子上片内flash的型号有关系。
+
+## 可能的问题
+* 我测试flash的代码写错了
+* 对照教程配置flash的时候出错了
+* 这个板子的片内flash比较特殊，教程无效
+* 板子坏了（可能性极低）
+
+## 参考文献：
+https://www.altera.com/documentation/vgo1395753117436.html
+http://jingyan.eeboard.com/article/74039
 
 
 ------------------------------------------------------------------------------
