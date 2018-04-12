@@ -121,8 +121,9 @@ hob:bin/ $ ./jtagconfig
 * 板子坏了（可能性极低）
 
 ## 参考文献：
-https://www.altera.com/documentation/vgo1395753117436.html
-http://jingyan.eeboard.com/article/74039
+[片内flash参考手册](https://www.altera.com/documentation/vgo1395753117436.html)
+
+[quartus片内flash教程](http://jingyan.eeboard.com/article/74039)
 
 
 ------------------------------------------------------------------------------
