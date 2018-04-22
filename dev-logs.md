@@ -24,7 +24,10 @@
 # 日志
 __写日志时请按照逆序时间排序__
 
-## 4月18日至21日
+## 4月21日
+* 成功复现 [Cpu0](http://jonathan2251.github.io/lbd/) 的后端构建.
+
+## 4月18日至20日
 * 研究 llvm, 阅读相关文档, 试图重现 [Cpu0](http://jonathan2251.github.io/lbd/) 项目的后端构建.
 	1. 负责编译的 dzy 的 4 代 i5 和 4G 小内存编译不动: 缩减目标架构后能够编译, 一次 25 分钟
 	2. 编译出现错误 `missing LLVMBuild.txt file`: llvm 不支持 python3, 需要 python2.
