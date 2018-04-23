@@ -24,6 +24,12 @@
 # 日志
 __写日志时请按照逆序时间排序__
 
+## 4月22日至23日
+* 对照着官方给出的示例代码再次研究了一下flash相关的问题
+	1. 这个flash是嵌入51软核（FP51-1T）的，官方现在给出的答复也是会给出一个单独flash的代码。
+	2. 现在这个[flash使用示例](http://stepfpga.com/doc/fpga%E9%A1%B9%E7%9B%AE_%E4%BD%BF%E7%94%A8arduino%E7%8E%A9%E8%BD%ACfpga) 还跑不通，甚至其实连编译都过不了
+	3. 详细的信息将添加到memo里
+
 ## 4月21日
 * 成功复现 [Cpu0](http://jonathan2251.github.io/lbd/) 的后端构建.
 
