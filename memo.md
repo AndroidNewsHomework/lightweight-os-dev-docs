@@ -91,6 +91,7 @@ hob:bin/ $ ./jtagconfig
 
 # 片内Flash 的使用
 尽管经过一系列的努力还是没有调通flash，不过把已经做过的事和问题先列在这里。
+更新：现在尝试着跑一下官方的flash使用代码，还是跑不通，问题记录在这一个的部分的最后 *另一个尝试* 了。
 
 ## 添加Flash的QSys system
 在quartus右边，IP catalog里选择install IP -> Library -> On Chip Memory -> Altera On-Chip Flash，双击打开QSys编辑页面，设置路径及文件名，按照需要配置一下时钟周期，突发模式等。
@@ -119,6 +120,20 @@ hob:bin/ $ ./jtagconfig
 * 对照教程配置flash的时候出错了
 * 这个板子的片内flash比较特殊，教程无效
 * 板子坏了（可能性极低）
+
+## 另一个尝试
+向老师给我们提供了官方的[flash演示项目](http://stepfpga.com/doc/fpga%E9%A1%B9%E7%9B%AE_%E4%BD%BF%E7%94%A8arduino%E7%8E%A9%E8%BD%ACfpga)，以下简称*官方项目*。
+
+这个项目的flash是嵌入了51软核([PulseRain FP51-1T MCU](https://www.pulserain.com/fp51))的，依据我现在对软核的理解，应该是一个提供fpga与外设通讯平台的东西。按照图示来看fpga使用片内flash本来应该就不需要经过软核，官方也回复说要给我们单独flash的代码了。
+
+在这个项目里on-chip flash部分的代码似乎是用system verilog书写的，这个代码我不太熟悉，还没有仔细看。
+
+我在跑官方项目的过程中所做的尝试与出现的问题列举如下：
+* 准备工作已经完成，下载了项目代码，quartus本来就有，版本比他高一点，也安装了Arduino IDE。这个Arduino是一个用高级语言（我看到的是C，据说有java的部分）完成硬件功能的开发平台，由Arduino和Arduino IDE分别提供硬件和软件支持，可以用高级语言指示开发板要做什么样的事情。
+* 硬件逻辑那一块，quartus的项目是综合好的，可以直接烧入板子里，问题是现在也只能用它综合好的东西，因为似乎我没有办法再次编译综合（提示缺少库文件，我的确找不到他include的两个库文件，估计是没有公开的部分？但是我之前在git更新他submodule的时候也出现了问题，不知道有没有关系）
+* Arduino的环境按照他说的已经配好了，很顺利，但是没有办法编译，编译时会报错。
+
+**更新：我在写这个memo的时候本来打算去把报错信息复制一份过来的，然后不小心把文件删了，然后重新复制了一份项目代码，重新命了个名，结果又编译过了。请等待进一步的研究**
 
 ## 参考文献：
 [片内flash参考手册](https://www.altera.com/documentation/vgo1395753117436.html)
