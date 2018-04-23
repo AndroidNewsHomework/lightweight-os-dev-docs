@@ -26,6 +26,7 @@ __写日志时请按照逆序时间排序__
 
 ## 4月21日
 * 成功复现 [Cpu0](http://jonathan2251.github.io/lbd/) 的后端构建.
+	复现过程参考 memo.
 
 ## 4月18日至20日
 * 研究 llvm, 阅读相关文档, 试图重现 [Cpu0](http://jonathan2251.github.io/lbd/) 项目的后端构建.
@@ -38,7 +39,8 @@ __写日志时请按照逆序时间排序__
 	发现 recc 编译器十分没有被优化, 简单的 \a,b: a+b+b 函数都能编译出 100 条指令来.
 	ABI 比较混乱, 没有文档, 需要一定时间研究.
 
-* 希望增加指令, 如 `addi rd rs imm`, `subi rd rs imm`, `lul rd imm`, `push rs`, `pop rd`.
+* 分析编译生成的代码, 希望增加指令,
+	如 `addi rd rs imm`, `subi rd rs imm`, `lul rd imm`, `push rs`, `pop rd`.
 	并且希望修改指令, 如 `loa rd offset(rs)` 和 `sto rs offset(rt)`.
 
 

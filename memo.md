@@ -198,3 +198,140 @@ Tools
 
 如果出现了 unknown expanded name 之类的问题, 这是因为 modelsim 只负责仿真, 你所有的其他实体都需要已经被编译.
 这种时候可以尝试修改 top 实体, 如改成 `CPU_CORE`.
+
+
+------------------------------------------------------------------------------
+
+# Cpu0 项目的结果重现
+
+只叙述在 Linux (Ubuntu 16.04LTS) 环境下.
+
+## Cpu0 项目概述, 以及前期准备
+[Cpu0 项目](http://jonathan2251.github.io/lbd/) 是一个台湾人针对他的一个教学指令集 Cpu0
+用 llvm 写了后端, 在此基础上写了教程.
+
+前期准备主要有两件事情
+
+1. 获取 Cpu0 项目代码: [下载链接](TODO)
+
+2. 获取 llvm 3.9.0 代码 (版本很重要): [下载链接] (TODO)
+
+另外, 本项目 (recc) 需要使用 clang 和 clang++. 可以通过
+```
+$ sudo apt-get install clang
+``` 
+安装.
+
+## 复现 Cpu0 项目
+
+1. 在 llvm 中注册 Cpu0 后端
+```
+$ cp LBDEX_PATH/src/modify/src/* LLVM_PATH -r
+```
+
+2. 复制 Cpu0 后端代码
+```
+$ cp LBDEX_PATH/Cpu0 LLVM_PATH/lib/Target/Cpu0 -r
+```
+
+3. 修改 `LLVM_PATH/CMakeLists.txt`, 删去不需要的目标, 只保留 Mips 和 Cpu0
+```
+set(LLVM_ALL_TARGETS
+  Mips
+  Cpu0
+  )
+```
+
+4. 开始构建
+```
+$ cd LLVM_PATH
+$ mkdir build
+$ cd build
+$ cmake .. -G "Unix Makefiles" -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=Debug 
+```
+若成功, 最后几行输出应当是
+```
+-- Targeting Mips
+-- Targeting Cpu0
+-- Configuring done
+-- Generating done
+-- Build files have been written to: LLVM_PATH/build
+```
+之后执行
+```
+$ make -j4
+```
+即可, 其中 `-j4` 是 4线程并行, 对于更好的机器可以提高并行度.
+
+	在最后链接生成目标可执行文件时, 可能出现机器内存不够的情况, 造成卡死.
+	这时可以使用 `Ctrl-C` 手动终止 `make`, 之后单线程重新启动.
+	我个人的方法是, 感觉电脑变卡之后检查负载 (使用`htop`), 如果内存负载过高就重新单线程启动`make`.
+
+5. 验证结果
+
+```
+$ cd LLVM_PATH
+$ cd build/bin
+$ ./llc --version
+```
+输出中 `Registered Targets:` 中应当有 Mips 和 Cpu0.
+
+之后新建 `foobar.c`, 内容为
+```C
+int main()
+{
+	return 0;
+}
+```
+
+执行
+```
+$ clang -target mips-unknown-linux-gnu -c foobar.c -emit-llvm
+$ clang -target mips-unknown-linux-gnu -S foobar.c -emit-llvm
+```
+分别生成 `foobar.bc` 和 `foobar.ll`, 是 LLVM 的中间表示.
+可以加上优化选项 `-O1` 等优化代码大小和效率.
+
+之后
+```
+$ ./llc -march=cpu0 -relocation-model=pic -filetype=asm foobar.bc -o - 
+```
+
+可以看到输出了 Cpu0 的汇编代码, 以下是一个实例
+```
+        .text
+        .section .mdebug.abiO32
+        .previous
+        .file   "foobar.bc"
+        .globl  main
+        .p2align        2
+        .type   main,@function
+        .ent    main                    # @main
+main:
+        .frame  $fp,8,$lr
+        .mask   0x00001000,-4
+        .set    noreorder
+        .set    nomacro
+# BB#0:
+        addiu   $sp, $sp, -8
+        st      $fp, 4($sp)             # 4-byte Folded Spill
+        move     $fp, $sp
+        addiu   $2, $zero, 0
+        st      $2, 0($fp)
+        move     $sp, $fp
+        ld      $fp, 4($sp)             # 4-byte Folded Reload
+        addiu   $sp, $sp, 8
+        ret     $lr
+        nop
+        .set    macro
+        .set    reorder
+        .end    main
+$func_end0:
+        .size   main, ($func_end0)-main
+
+
+        .ident  "clang version 3.8.0-2ubuntu4 (tags/RELEASE_380/final)"
+        .section        ".note.GNU-stack","",@progbits
+```
+
+以上步骤均正确完成, 则 Cpu0 项目复现成功.
