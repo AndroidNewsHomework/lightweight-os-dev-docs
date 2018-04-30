@@ -144,7 +144,7 @@ Files in `recc/` and also `kernel/filesystem.c` include some of these generated 
 ```
 This generates the C codes in `generated/`.
 
-### construct_entity(state, "test/kernel.l0.js")
+### construct\_entity(state, "test/kernel.l0.js")
 This not only builds `test/kernel.l0.js` but also all of its dependencies,
 including the kernel image `kernel/kernel.l1`.
 
@@ -228,6 +228,239 @@ With the above description, it's easy to see that the kernel image structure
 
 * `DW 0xXXXXXXXX; DW 0xXXXXXXXX ...`
 	data area. _TODO_ probably `output_symbols`?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+------------------------------------------------------------------------------
+# Code generator read notes
+
+This section is abandoned and should be soon removed. llvm is used for code generation now.
+
+## C ll grammar
+See `doc/ll-c-grammar.txt` and `doc/ll-c-grammer-excfg.txt`.
+
+* `translation_unit`: top nonterminal, similar to a program.
+* `type_specifier`: any type, such as `int`, or an struct.
+* `type_qualifier`: const or volatile.
+* `declarator`: an entity, specifies its name (IDENTIFIER), whether is function or array...
+* `abstract_declarator`: similar to `declarator` but omits the name (identifier) part.
+	It cannot be used for declaring variables. Only used in parameter lists.
+
+## type\_description
+
+abstract idea of a single specific 'type' in C 
+
+used to check for compatibility between two types,
+	or as a starting point for modifying a type into related types (such as pointed to by, address type, array type etc.).  
+
+describes whether value is lvalue or rvalue
+
+In addition, for types declared as anonymous enums, structs or untions, we need a reference
+to the normalized declaration element that it was declared from.  
+
+Also, because non-file scoped typedefs
+will have a local scope to the block that they are declared in, a type description will also need to
+know what scope level it belongs to.  
+A context variable is also used to keep track of where the type
+description was created.
+
+```C
+struct type_description{
+        struct normalized_declaration_element * source_element; /* Needed for anonymous struct/union/enum */
+        struct normalized_declarator * declarator;
+        struct struct_normalized_specifier_ptr_list * specifiers;
+        struct parser_node * context;
+        struct scope_level * source_scope_level;
+        enum value_type value_type;
+        unsigned int pad;
+};
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+------------------------------------------------------------------------------
+# Dragon Book Code Generation Chapter:
+
+## Code Generator 
+Code generator: IR -> target machine code.
+
+	Optimal machine code generation is intractable.
+
+### Basic Tasks
+1. Instruction selection: choose Machine Instruction to implement IR Instruction.
+2. Register allocation and assignment: relationship between register and value.
+    _Consideration: is the value type manipulatable directly by the machine? e.g. type conversion / legalizing?_
+3. Instruction reordering: in what order do we schedule the instructions.
+
+## Instruction Selection
+### Naive Method:
+each IR -> a sequence of Machine Instructions.
+
+### Tree rewriting
+Trees: represent a list of statements. Runtime address of variables have been determined.
+e.g. `a[i] = b+1` can be translated into the tree
+```
+=
+	mem_lvalue
+		+
+			+
+				runtime_addr [offset to SP]: a
+				register: SP
+			loadmem
+				+
+					runtime_addr [offset to SP]: i
+					register: SP
+	+
+		runtime_addr: b
+		constant: 1
+```
+
+Then a set of tree-rewriting rules are specified,
+each in the form of `replacement <- pattern {action}`.
+The rules are applied by finding `pattern` in the tree and replacing it with `replacement`,
+meanwhile executing `action` possibly emitting instructions.
+It's done when the input tree is reduced to a single node, and a series of instructions have been emitted.
+
+Problems in tree rewriting:
+1. How to implement tree pattern matching? (We don't care)
+2. Multiple possible applicable rewriting rules. (Minimal cost)
+
+
+
+## Register allocation and assignment
+The `getreg()` example illustrates register allocation _within a basic block_,
+variables are loaded first and stored on basic block exit.
+
+Graph coloring is used for general register allocation.
+
+## Instruction scheduling
+We'll have no chance using this.
+
+## Other consideration
+
+### Generating good code
+* Split code into BB (Basic Blocks), then optimize with Def-Use, LiveIn-LiveOut pairs.
+
+* Transform each BB into a DAG representation. DAG consists of input nodes, output nodes,
+	internal evaluation nodes.
+	_Considerations: local common expression, dead code, statement reordering, algebraic optimization._
+
+### Peephole optimization
+* Another code generation idea other than the BB-DAG approach: Generate naive code first, then optimize.
+
+Peephole optimization especially uses a sliding window algorithm for optimization.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+------------------------------------------------------------------------------
+# LLVM reading
+TODO
+
+<!--
+## LLVM IR
+### 概述
+	类似 RISC ISA, 但是有类型 (`include/llvm/CodeGen/ValueTypes.td`), 如 `i1`, `i32*`.
+
+### 标识符
+* 局部的: 未命名, 局部值 `%1`, 命名的 `%hello.world`
+* 全局的: `@glob`, `@2`
+
+
+结构
+	项目 -> 编译单元		- 一系列全局值: 函数 全局变量 符号信息
+				-> 链接
+
+全局值 global values: 链接属性:
+		private 只能在它的 module 中被引用. 不会出现在符号表中
+		internal 基本类似 private, 只是出现在符号表中 (STO_LOCAL)
+
+## 代码生成器结构
+
+1. 指令选择
+
+2. 调度
+
+3. 寄存器分配
+
+4. 后期优化 (late optimizations)
+
+5. 发射代码
+-->
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -394,66 +627,3 @@ struct entity_type_relationship
         IS_INCLUDED_BY
     }
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-------------------------------------------------------------------------------
-
-# Reading Initial commit
-
-__TODO: maybe this is useless? delete later__
-
-struct memory_pooler
-    相当于自定义的 allocator, 使用类似 vector 的指数倍增算法加速分配
-        struct memory_pooler
-            一个 allocator 的配置
-            object_size:
-                这个 allocator 分配的内存块只有这么大
-
-    void create(struct memory_pooler *, unsigned object_size);
-    void destroy(struct memory_pooler *);
-    void* malloc(struct memory_pooler *);
-    void free(struct memory_pooler *, void *);
-
-struct memory_pooler_collection
-    void create(struct memory_pooler_collection *);
-    void destroy(struct memory_pooler_collection *);
-    struct memory_pooler* get_pool(struct memory_pooler_collection *, unsigned int object_size);
-        如果已经有这样的 pooler 返回, 否则创建一个
-
-
-lexer.c:
-    unsigned t_space(struct common_lexer_state * common_lexer_state, unsigned int tentative_position)
-        @common_lexer_state:
-            contains the file and till where we've parsed, holds buffer
-        @returns:
-            number of bytes advanced. The region gone through are all spaces.
-            could be 0 (tentative_position failed), or greater than 0
-
-    int lex_c(struct c_lexer_state * c_lexer_state, unsigned char * filename, unsigned char * buffer, unsigned int buffer_size){
-        @buffer, buffer_size:
-            used as buffer of c_lexer_state
-        @filename:
-            used also to initialize c_lexer_state
-        @returns:
-            0 if successful
-            1 if failed
-        @c_lexer_state:
-            put the tokens into it
-                `struct_c_lexer_token_ptr_list_add(&c_lexer_state->tokens, new_token);`
