@@ -6,7 +6,7 @@
 
 ## 概述
 向勇给我们的板子自带的那张纸是错的, 然后好像 stepfpga 官网上的 doc 也有错.
-我们板子上的 fpga 不是 10m02scm153i7g 而应该是 10m08scm153i7g 
+我们板子上的 fpga 不是 10m02scm153i7g 而应该是 10m08scm153i7g
 
 (其实余下不用看了) 后来我发现这就是他们的 docs / 纸片写错了.
 
@@ -52,7 +52,7 @@ end behave;
 
 按照 stepfpga 给出的 max10 系列文档 [链接](http://www.stepfpga.com/doc/step-max10).
 主要按照[软件文档](http://www.stepfpga.com/doc/_media/step-max10_v2%E8%BD%AF%E4%BB%B6%E6%89%8B%E5%86%8Cv1.0.pdf)建立项目, 使用上面的简单程序.
-综合成功后写入 FPGA 时出现问题, 好象是 JTAG ID 出错的信息, 
+综合成功后写入 FPGA 时出现问题, 好象是 JTAG ID 出错的信息,
 什么 expected jtag id 031810DD, found jtag id 031820DD.
 
 ## 如果复现失败
@@ -60,7 +60,7 @@ end behave;
 
 * 检查 usb blaster 驱动. Linux 系统下执行 `lsusb` 看是否有 Altera 的设备.
 
-* 检查当前用户是否有权限访问 usb 接口 
+* 检查当前用户是否有权限访问 usb 接口
 Linux 系统下需设置 /etc/udev/rules.d/, [参考链接](https://ask.fedoraproject.org/en/question/82315/altera-quartus-usb-blaster-jtagd-udev-usb-permissions/).
 
 ## 解决问题
@@ -164,7 +164,7 @@ architecture behave of litecpu_tb is
 begin
 	CLK <= not CLK after 10ns;
 
-	utop: 
+	utop:
 	entity work.litecpu
 	port map (
 		clk=> CLK,
@@ -176,18 +176,18 @@ end behave;
 注意要求 vhdl 项目代码规范使用 tab 缩进而非空格
 
 之后在 quartus 中,
-Assignments 
-> Settings 
-> EDA tool settings : Simulation 
-> NativeLink settings 
+Assignments
+> Settings
+> EDA tool settings : Simulation
+> NativeLink settings
 > compile test bench
 中新建一个 testbench, 其中包括我们的 testbench 文件.
 
 之后编译项目 (compile `Ctrl+L` 或者 start analysis and synthesis `Ctrl+K`.
 
 之后
-Tools 
-> Run Simulation tools 
+Tools
+> Run Simulation tools
 > RTL Simulation (行为仿真) 会打开 modelsim.
 
 ## modelsim 的使用
@@ -197,7 +197,7 @@ Tools
 
 ![Modelsim interface](https://github.com/AndroidNewsHomework/lightweight-os-dev-docs/blob/master/modelsim.png)
 
-其中 
+其中
 * A 按钮是重新开始模拟, 时间回到 0 ps. 一般修改要观察的信号表之后需要点这个.
 * B 框中填写你要运行的时间
 * C 按钮使得时间前进, 前进长度为 B 按钮中时间长度
@@ -234,7 +234,7 @@ Tools
 另外, 本项目 (recc) 需要使用 clang 和 clang++. 可以通过
 ```
 $ sudo apt-get install clang
-``` 
+```
 安装.
 
 ## 复现 Cpu0 项目
@@ -262,7 +262,7 @@ set(LLVM_ALL_TARGETS
 $ cd LLVM_PATH
 $ mkdir build
 $ cd build
-$ cmake .. -G "Unix Makefiles" -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=Debug 
+$ cmake .. -G "Unix Makefiles" -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=Debug
 ```
 若成功, 最后几行输出应当是
 ```
@@ -309,7 +309,7 @@ $ clang -target mips-unknown-linux-gnu -S foobar.c -emit-llvm
 
 之后
 ```
-$ ./llc -march=cpu0 -relocation-model=pic -filetype=asm foobar.bc -o - 
+$ ./llc -march=cpu0 -relocation-model=pic -filetype=asm foobar.bc -o -
 ```
 
 可以看到输出了 Cpu0 的汇编代码, 以下是一个实例
@@ -350,3 +350,31 @@ $func_end0:
 ```
 
 以上步骤均正确完成, 则 Cpu0 项目复现成功.
+
+## 加速构建过程
+主要可以通过使用更好的编译器和链接器来就加速构建 (`g++` 速度不够).
+编译器使用 `clang` 和 `clang++` 的方法如前所描述.
+链接时间事实上也占了不少, 因此下述链接器使用 llvm 项目的 `lld` 的方法.
+
+通过 cmake 选项设置链接器十分麻烦, 因此我们直接修改 `ld`.
+
+执行如下命令
+```
+$ sudo apt-get install lld-5.0  # 5.0 也可以是其他方法
+$ file /usr/bin/ld				# 备份一下信息
+$ sudo rm /usr/bin/ld
+$ sudo ln -s /usr/bin/ld.lld-5.0 /usr/bin/ld
+```
+
+之后直接 `make` 即可.
+
+事实上我尝试了三种链接器, 效果分别如下 (构建 `libSTO.so` 为例)
+
+* 使用 `/usr/bin/ld.lld-5.0`:
+	`make LTO  9.61s user 2.62s system 18% cpu 1:07.66 total`
+* 使用 `/usr/bin/ld.gold`:
+	`make LTO  15.16s user 3.43s system 28% cpu 1:04.10 total`
+* 使用 `/usr/bin/ld.bfd` (gnu ld 默认):
+	`make LTO  29.89s user 6.27s system 28% cpu 2:05.77 total`
+
+所以还是 `lld` 最快, 而且它也比默认的 `ld.bfd` 省内存.
