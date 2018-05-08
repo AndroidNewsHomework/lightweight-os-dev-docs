@@ -159,17 +159,17 @@ end litecpu_tb;
 
 
 architecture behave of litecpu_tb is
-	signal CLK: std_logic := '0';
-	signal disp: std_logic := '0';
+  signal CLK: std_logic := '0';
+  signal disp: std_logic := '0';
 begin
-	CLK <= not CLK after 10ns;
+  CLK <= not CLK after 10ns;
 
-	utop:
-	entity work.litecpu
-	port map (
-		clk=> CLK,
-		disp=> disp
-	);
+  utop:
+  entity work.litecpu
+  port map (
+    clk=> CLK,
+    disp=> disp
+  );
 
 end behave;
 ```
@@ -227,9 +227,9 @@ Tools
 
 前期准备主要有两件事情
 
-1. 获取 Cpu0 项目代码: [下载链接](TODO)
+1. 获取 Cpu0 项目代码: [下载链接](http://jonathan2251.github.io/lbd/lbdex.tar.gz)
 
-2. 获取 llvm 3.9.0 代码 (版本很重要): [下载链接] (TODO)
+2. 获取 llvm 3.9.0 代码 (版本很重要): [下载链接](http://releases.llvm.org/3.9.0/llvm-3.9.0.src.tar.xz)
 
 另外, 本项目 (recc) 需要使用 clang 和 clang++. 可以通过
 ```
@@ -278,9 +278,9 @@ $ make -j4
 ```
 即可, 其中 `-j4` 是 4线程并行, 对于更好的机器可以提高并行度.
 
-	在最后链接生成目标可执行文件时, 可能出现机器内存不够的情况, 造成卡死.
-	这时可以使用 `Ctrl-C` 手动终止 `make`, 之后单线程重新启动.
-	我个人的方法是, 感觉电脑变卡之后检查负载 (使用`htop`), 如果内存负载过高就重新单线程启动`make`.
+  在最后链接生成目标可执行文件时, 可能出现机器内存不够的情况, 造成卡死.
+  这时可以使用 `Ctrl-C` 手动终止 `make`, 之后单线程重新启动.
+  我个人的方法是, 感觉电脑变卡之后检查负载 (使用`htop`), 如果内存负载过高就重新单线程启动`make`.
 
 5. 验证结果
 
@@ -295,7 +295,7 @@ $ ./llc --version
 ```C
 int main()
 {
-	return 0;
+  return 0;
 }
 ```
 
@@ -361,7 +361,7 @@ $func_end0:
 执行如下命令
 ```
 $ sudo apt-get install lld-5.0  # 5.0 也可以是其他方法
-$ file /usr/bin/ld				# 备份一下信息
+$ file /usr/bin/ld        # 备份一下信息
 $ sudo rm /usr/bin/ld
 $ sudo ln -s /usr/bin/ld.lld-5.0 /usr/bin/ld
 ```
@@ -371,10 +371,98 @@ $ sudo ln -s /usr/bin/ld.lld-5.0 /usr/bin/ld
 事实上我尝试了三种链接器, 效果分别如下 (构建 `libSTO.so` 为例)
 
 * 使用 `/usr/bin/ld.lld-5.0`:
-	`make LTO  9.61s user 2.62s system 18% cpu 1:07.66 total`
+  `make LTO  9.61s user 2.62s system 18% cpu 1:07.66 total`
 * 使用 `/usr/bin/ld.gold`:
-	`make LTO  15.16s user 3.43s system 28% cpu 1:04.10 total`
+  `make LTO  15.16s user 3.43s system 28% cpu 1:04.10 total`
 * 使用 `/usr/bin/ld.bfd` (gnu ld 默认):
-	`make LTO  29.89s user 6.27s system 28% cpu 2:05.77 total`
+  `make LTO  29.89s user 6.27s system 28% cpu 2:05.77 total`
 
 所以还是 `lld` 最快, 而且它也比默认的 `ld.bfd` 省内存.
+
+------------------------------------------------------------------------------
+
+# llvm 工具链的准备
+
+Cpu0 项目复现中, 我们只是完成了一个编译器. 现在准备链接器, 所以需要准备整个 llvm 项目.
+
+## 版本要求
+因为我们编译器基于 Cpu0, 因此要求的版本是 llvm-3.9.0.
+链接器也是基于 [Cpu0 exlbt](http://jonathan2251.github.io/lbt/) 的,
+注意 Cpu0 文档中写错了, 文档中声称使用 lld-3.5.0, 实际应当使用 lld-3.9.0.
+
+clang 我们直接使用系统包管理器给我们的 clang 即可 (`apt-get install clang`).
+
+其余 `cmake`, `make` 等软件直接使用系统自带的版本即可 (ubuntu 16.04LTS 自带即可).
+
+## 配置
+1. 下载 lld-3.9.0, 放入 `LLVM_PATH/tools/lld` 中. 可以通过 `svn` 来简单的完成
+```
+LLVM_PATH/tools/ $ svn co http://llvm.org/svn/llvm-project/lld/tags/RELEASE_390/final/ lld  
+```
+
+2. 下载 `exlbt`, 解压后复制其 `lld/` 到 llvm 的 `tools/lld` 中
+```
+LLVM_PATH/ $ cp EXLBT_PATH/lld tools/lld -r
+```
+
+## 编译
+同上, 在 `build/` 中使用 `cmake` 和 `make` 构建. 以下关闭了一些模块, 加速构建过程.
+
+```
+build/ rm * -rf		# just clear cmake caches
+build/ $ cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=Debug -DLLVM_INCLUDE_TESTS=OFF -DLLVM_INCLUDE_EXAMPLES=OFF -G "Unix Makefiles" ..
+build/ $ make -j2 # change parallel factor according to your machine
+```
+
+编译成功后会在 `build/bin` 中出现 `lld` 文件. 在 Linux 下我们使用 `ld.lld`.
+
+## 测试
+```
+build/bin/ $ mkdir src && cd src
+```
+
+在 `build/bin/src/` 中新建 `main.c` 和 `foobar.c`, 内容如下
+
+```
+// main.c
+extern unsigned a;
+
+int main()
+{
+	a = 5;
+	return 0;
+}
+
+
+// foobar.c
+unsigned int a = 6;
+```
+
+之后
+```
+src/ $ clang -target mips-unknown-linux-gnu -O0 -emit-llvm -c main.c # generates main.bc
+src/ $ clang -target mips-unknown-linux-gnu -O0 -emit-llvm -c foobar.c # generates foobar.bc
+src/ $ ../llc -march=cpu0 -relocation-model=static -filetype=obj main.bc -o main.o
+src/ $ ../llc -march=cpu0 -relocation-model=static -filetype=asm main.bc -o main.s
+src/ $ objdump -s main.o > main.rel.od.s
+src/ $ ../llc -march=cpu0 -relocation-model=static -filetype=obj foobar.bc -o foobar.o
+src/ $ ../llc -march=cpu0 -relocation-model=static -filetype=asm foobar.bc -o foobar.s
+src/ $ objdump -s foobar.o > foobar.rel.od.s
+src/ $ ../ld.lld *.o -e main 
+src/ $ objdump -s a.out > a.out.exe.od.s
+```
+
+生成文件中, 我们关注 
+1. `main.s`, `foobar.s`: 生成的汇编代码
+2. `main.rel.od.s`, `foobar.rel.od.s`: 生成的可重定向文件中的内容
+3. `a.out.exe.od.s`: 生成的可执行文件中的内容
+
+观察 `*.rel.od.s`, 发现
+* `*.rel.od.s` 中指令和代码的地址都是从 `0000` 开始
+* `main.rel.od.s` 中载入变量 `a` 地址的两条指令中 
+(`lui` 和 `ori`, 后续版本可能是 `lui` 和 `addiu`)
+`a` 的地址都是 `00000000`. 在可重定向目标文件里, 这表示 `a` 的地址还没确定
+
+观察 `a.out.exe.s`, 发现
+* 指令从 `0x20000` 开始, 数据从 `0x30000` 开始. 这是默认值, 可以通过链接脚本修改.
+* 载入变量 `a` 地址的两条指令中, `a` 的地址确定到了 `0x00030000`.

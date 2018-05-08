@@ -24,6 +24,24 @@
 # 日志
 __写日志时请按照逆序时间排序__
 
+## 5月8日
+* 成功浮现 Cpu0 的链接器. 详情参见 memo.
+
+* 参考 [Cpu0 工具链](http://jonathan2251.github.io/lbt/) 实现了基于 
+`lld` 的[链接器](https://bitbucket.org/hoblovski/cpu0-linker/src/master/)
+(以后整合到课程仓库中), 能将可重定向目标文件链接成可执行目标文件.
+
+* 学习了链接脚本的写法.
+
+## 5月6日到7日
+* 研究链接器
+
+* 重构编译器后端, 删除不必要的代码
+
+* 检查后端是否可以编译 `recc/kernel`, `recc/libc`, `recc/builtin` 中代码.
+	除了一个按字节访问 (LiteCPU 明确说明不支持按字节访问) 的 `vsnprintf`,
+	其余均可正常编译生成汇编代码 (`.s`) 和可重定位目标文件 (`.o`).
+
 ## 5月5日
 * 后端基本完成, 能编译简单的 Fibonacci 递归程序到汇编程序.
 现在还有一些指令选择模式没有实现, 如 `SELECT_CC`.
@@ -171,7 +189,7 @@ __写日志时请按照逆序时间排序__
 ## 4月7日
 * 发现 kernel image 过大 (光是指令就有 1 MB), 难以写入 FPGA 中 (BRAM 378Kb, UserFlash 32KB).
 
-*TODO*: 研究裁剪 OS / 优化 kernel image 的大小的方法
+* 以后工作: 研究裁剪 OS / 优化 kernel image 的大小的方法
 
 ## 4月6日
 * 更仔细的阅读 recc 源代码, 开始研究 recc 编译器
