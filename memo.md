@@ -231,11 +231,7 @@ Tools
 
 2. 获取 llvm 3.9.0 代码 (版本很重要): [下载链接](http://releases.llvm.org/3.9.0/llvm-3.9.0.src.tar.xz)
 
-另外, 本项目 (recc) 需要使用 clang 和 clang++. 可以通过
-```
-$ sudo apt-get install clang
-```
-安装.
+另外, 本项目 (recc) 需要使用 clang 和 clang++. 使用 3.8 和 3.9 均可.
 
 ## 复现 Cpu0 项目
 
@@ -390,7 +386,7 @@ Cpu0 项目复现中, 我们只是完成了一个编译器. 现在准备链接�
 链接器也是基于 [Cpu0 exlbt](http://jonathan2251.github.io/lbt/) 的,
 注意 Cpu0 文档中写错了, 文档中声称使用 lld-3.5.0, 实际应当使用 lld-3.9.0.
 
-clang 我们直接使用系统包管理器给我们的 clang 即可 (`apt-get install clang`).
+对于 clang, 如前所示使用 3.8 或者 3.9.
 
 其余 `cmake`, `make` 等软件直接使用系统自带的版本即可 (ubuntu 16.04LTS 自带即可).
 
