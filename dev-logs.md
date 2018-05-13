@@ -24,6 +24,11 @@
 # 日志
 __写日志时请按照逆序时间排序__
 
+## 5月13日
+* 完善[编译器测试](https://bitbucket.org/hoblovski/cpu0-backend-testcases/src)
+
+* 将操作系统中汇编代码改写, 目标是修改后的 ISA.
+
 ## 5月12日
 * 发现编译器另外一个 bug: 函数中改变的寄存器不能被正确记录,
 造成应该被保存的 callee saved register 没有被保存 (到栈上).
