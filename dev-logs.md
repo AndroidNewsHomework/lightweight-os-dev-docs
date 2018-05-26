@@ -12,6 +12,16 @@
 
 下文中使用 recc 来代指这整个 CPU, 编译, OS 的项目.
 
+------------------------------------------------------------------------------
+# 已有工作
+## 编译工具链
+* [Cpu0 编译器](http://jonathan2251.github.io/lbd/): Cpu0 ISA 上的编译器后端
+* [Cpu0 链接器](https://github.com/Jonathan2251/lbt): 针对上面编译器生成的目标文件的链接器
+* [LEG 编译器](http://llvm.org/devmtg/2014-10/Slides/Cormack-BuildingAnLLVMBackend.pdf): 一个非常 RISC 的 LEG ISA 的编译器后端
+* [汇编器](https://www.embecosm.com/appnotes/ean10/ean10-howto-llvmas-1.0.pdf): 使用 LLVM 设计汇编器
+
+## 操作系统
+* [recc 操作系统](https://github.com/RobertElderSoftware/recc/tree/master/kernel)
 
 ------------------------------------------------------------------------------
 
